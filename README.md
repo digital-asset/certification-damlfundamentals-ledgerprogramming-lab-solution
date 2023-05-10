@@ -1,3 +1,3 @@
-# damlfundamentals-lp-labs
+# certification-damlfundamentals-ledgerprogramming-lab-solution
 
 This repo has solutions to labs in the Daml Fundamentals course: Canton Ledger Programming in Daml

@@ -1,0 +1,72 @@
+module Lab1 where 
+
+-- Problem 1
+
+template CLPApplication 
+    with 
+        customer: Party 
+        airline: Party 
+        name: Text
+        address: Text
+        email: Text
+        phone: Optional Text
+        timestamp: Time 
+        dob: Date 
+       
+    where 
+        signatory customer
+        observer airline 
+         
+        choice SubmitApplication: ContractId CLPApplication 
+            with 
+                appCustomer: Party 
+                appAirline: Party 
+                customerName: Text
+                customerAddress: Text
+                customerEmail: Text
+                customerPhone: Optional Text
+                now: Time 
+                customerDob: Date 
+            controller customer 
+                do 
+                    create CLPApplication  
+                        with 
+                            customer = appCustomer
+                            airline = appAirline
+                            name = customerName
+                            address = customerAddress
+                            email = customerEmail
+                            phone = customerPhone
+                            timestamp = now
+                            dob = customerDob 
+                        
+        choice AcceptApplication: ContractId CLPAccount 
+            with 
+                points: Int
+                accountTimestamp: Time 
+            controller airline 
+                do 
+                    create CLPAccount 
+                        with 
+                            ..
+
+        choice RejectApplication: Text 
+            controller airline 
+                do 
+                    return ("Application rejected")
+
+
+template CLPAccount 
+    with
+        customer: Party 
+        airline: Party 
+        name: Text
+        address: Text
+        email: Text
+        phone: Optional Text
+        timestamp: Time 
+        dob: Date 
+        points: Int
+
+    where 
+        signatory customer, airline 

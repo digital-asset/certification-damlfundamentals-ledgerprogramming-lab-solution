@@ -1,0 +1,111 @@
+module TestLab3 where 
+
+import Daml.Script
+import Lab3 
+import DA.Date (toDateUTC, date, Month(Jan), Month(Mar))
+import DA.Time (time)
+import DA.Optional (fromSome)
+
+-- Problem 1
+testActionsLoops: Script () 
+testActionsLoops = script do 
+    alice <- allocateParty "Alice"
+    bob <- allocateParty "Bob"
+    airline <- allocateParty "Epic Airlines"
+    
+    setTime (time (date 2023 Mar 01) 10 30 0)
+    now <- getTime 
+
+    -- Alice creates a blank CLPApplication
+    aliceCLPAppId <- submit alice do         
+        createCmd CLPApplication with  
+            customer = alice 
+            airline = airline 
+            id = ""
+            name = ""
+            address = ""
+            email = ""
+            phone = Some ""
+            timestamp = now 
+            dob = toDateUTC now
+
+    -- Alice submits the application with details filled in
+    aliceCLPAppId <- submit alice do 
+        exerciseCmd aliceCLPAppId SubmitApplication 
+            with
+                appCustomer = alice 
+                appAirline = airline
+                customerId = "123"
+                customerName = "Alice"
+                customerAddress = "123 Main St ABCD"
+                customerEmail = "alice@wonderland.io"
+                customerPhone = Some "+01-555-555-1234"
+                appTimeStamp = now
+                customerDob = date 2000 Jan 05    
+
+    -- Bob creates a blank application
+    bobCLPAppId <- submit bob do         
+        createCmd CLPApplication with  
+            customer = bob 
+            airline = airline 
+            id = ""
+            name = ""
+            address = ""
+            email = ""
+            phone = Some ""
+            timestamp = now 
+            dob = toDateUTC now
+
+   -- Bob submits application with details filled in
+    bobCLPAppId <- submit bob do 
+        exerciseCmd bobCLPAppId SubmitApplication 
+            with
+                appCustomer = bob 
+                appAirline = airline
+                customerId = "234"
+                customerName = "Bob"
+                customerAddress = "123 Spring St EFGH"
+                customerEmail = "bob@nomansland.io"
+                customerPhone = Some "+01-555-555-5678"
+                appTimeStamp = now
+                customerDob = date 2010 Jan 05    
+
+    -- Get all applications
+    allApplications <- query @CLPApplication airline 
+    -- Get all application Cids
+    let allApplicationCids = map  (\x -> x._1) allApplications
+    -- Get all customer ids
+    let allCustomerIds = map (\x -> x._2.id) allApplications
+    -- make a list of tuples with cids and ids
+    let allCidsAndIds = zip allApplicationCids allCustomerIds 
+
+
+
+-- Problem 2
+
+    -- Review all applications
+    allAccountCids <- submit airline do 
+        mapA (\x -> exerciseCmd x._1 ReviewApplication ) allCidsAndIds
+
+    -- Add 1000 points to all accounts
+    allNewAccountCids <- submit airline do 
+        mapA (\x -> exerciseCmd (fromSome x) AddPoints with newPoints = 1000) allAccountCids
+
+    allAccountTuples <- query @CLPAccount airline
+    
+    -- debug allApplications
+    -- debug allApplicationCids 
+    -- debug allCidsAndIds
+    debug allAccountCids 
+    debug allAccountTuples 
+
+
+    allAccountTuples <- query @CLPAccount airline
+    
+    -- debug allApplications
+    -- debug allApplicationCids 
+    -- debug allCidsAndIds
+    debug allAccountCids 
+    debug allAccountTuples 
+    
+    return()
